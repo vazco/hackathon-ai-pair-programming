@@ -23,17 +23,13 @@ export function useSoundEffects() {
     const audioContext = getAudioContext();
     const now = audioContext.currentTime;
 
-    // Create a continuous slot machine/mechanical reel sound
-    // Main oscillator for the clicking sound
     const oscillator1 = audioContext.createOscillator();
     const oscillator2 = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
 
-    // LFO for amplitude modulation (creates the clicking rhythm)
     const lfoOscillator = audioContext.createOscillator();
     const lfoGain = audioContext.createGain();
 
-    // Set up LFO (Low Frequency Oscillator) for rhythmic clicks
     lfoOscillator.frequency.setValueAtTime(8, now); // 8 clicks per second initially
     lfoOscillator.frequency.linearRampToValueAtTime(25, now + 2.5); // Speed up to 25 clicks per second
     lfoGain.gain.setValueAtTime(0.5, now);
@@ -41,11 +37,9 @@ export function useSoundEffects() {
     lfoOscillator.connect(lfoGain);
     lfoGain.connect(gainNode.gain);
 
-    // Main sound sources
     oscillator1.type = 'square';
     oscillator2.type = 'sawtooth';
 
-    // Create a mechanical clicking sound with two oscillators
     oscillator1.frequency.setValueAtTime(220, now);
     oscillator1.frequency.linearRampToValueAtTime(330, now + 2.5);
 
@@ -56,7 +50,6 @@ export function useSoundEffects() {
     oscillator2.connect(gainNode);
     gainNode.connect(audioContext.destination);
 
-    // Envelope
     gainNode.gain.setValueAtTime(0, now);
     gainNode.gain.linearRampToValueAtTime(0.12, now + 0.1);
     gainNode.gain.setValueAtTime(0.12, now + 2.3);
@@ -70,7 +63,6 @@ export function useSoundEffects() {
     oscillator2.stop(now + 2.5);
     lfoOscillator.stop(now + 2.5);
 
-    // Store references for cleanup
     randomizingSoundNodesRef.current = {
       oscillator1,
       oscillator2,
@@ -88,7 +80,6 @@ export function useSoundEffects() {
       try {
         const { oscillator1, oscillator2, lfoOscillator, gainNode } = randomizingSoundNodesRef.current;
 
-        // Fade out quickly
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
         gainNode.gain.linearRampToValueAtTime(0.01, now + 0.1);
@@ -97,7 +88,6 @@ export function useSoundEffects() {
         oscillator2.stop(now + 0.1);
         lfoOscillator.stop(now + 0.1);
       } catch (error) {
-        // Oscillators may have already stopped
       }
 
       randomizingSoundNodesRef.current = null;
@@ -108,7 +98,6 @@ export function useSoundEffects() {
     const audioContext = getAudioContext();
     const now = audioContext.currentTime;
 
-    // Create a success fanfare sound with multiple notes
     const notes = [
       { freq: 523.25, start: 0, duration: 0.15 },      // C5
       { freq: 659.25, start: 0.1, duration: 0.15 },    // E5
@@ -128,7 +117,6 @@ export function useSoundEffects() {
       const startTime = now + note.start;
       const endTime = startTime + note.duration;
 
-      // Envelope for each note
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.02);
       gainNode.gain.exponentialRampToValueAtTime(0.01, endTime);
@@ -137,7 +125,6 @@ export function useSoundEffects() {
       oscillator.stop(endTime);
     });
 
-    // Add a final bass note for impact
     const bassOscillator = audioContext.createOscillator();
     const bassGain = audioContext.createGain();
 

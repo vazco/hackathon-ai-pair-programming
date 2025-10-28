@@ -13,7 +13,6 @@ function Index() {
   const [isLoading, setIsLoading] = useState(false);
   const { playRandomizingSound, stopRandomizingSound, playWinnerSound } = useSoundEffects();
 
-  // Load history on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -26,7 +25,6 @@ function Index() {
     loadData();
   }, []);
 
-  // Play randomizing sound when animation starts and stop when it ends
   useEffect(() => {
     if (isAnimating) {
       playRandomizingSound();
@@ -35,7 +33,6 @@ function Index() {
     }
   }, [isAnimating, playRandomizingSound, stopRandomizingSound]);
 
-  // Play winner sound when pairing is revealed
   useEffect(() => {
     if (!isAnimating && currentPairing) {
       playWinnerSound();
@@ -47,7 +44,6 @@ function Index() {
       setIsLoading(true);
       setIsAnimating(true);
 
-      // Animate for 2.5 seconds before showing result
       const [pairingData] = await Promise.all([
         apiClient.generateAndSavePairing(),
         new Promise((resolve) => setTimeout(resolve, 2500)),
@@ -56,7 +52,6 @@ function Index() {
       setIsAnimating(false);
       setCurrentPairing(pairingData);
 
-      // Refresh history
       const historyData = await apiClient.getPairingHistory();
       setHistory(historyData);
     } catch (error) {
@@ -72,10 +67,46 @@ function Index() {
     }
   };
 
+  const handleRegamble = async () => {
+    try {
+      setIsAnimating(true);
+
+      const [regambledData] = await Promise.all([
+        apiClient.regenerateLatestPairing(),
+        new Promise((resolve) => setTimeout(resolve, 2500)),
+      ]);
+
+      setIsAnimating(false);
+
+      if (regambledData) {
+        const newPairing: Pairing = {
+          user1: {
+            name: regambledData.firstWinnerName,
+            github: regambledData.firstWinnerGithub,
+            active: true,
+          },
+          user2: {
+            name: regambledData.secondWinnerName,
+            github: regambledData.secondWinnerGithub,
+            active: true,
+          },
+          timestamp: regambledData.createdAt.toISOString(),
+        };
+        setCurrentPairing(newPairing);
+      }
+
+      const historyData = await apiClient.getPairingHistory();
+      setHistory(historyData);
+    } catch (error) {
+      console.error('Failed to regamble:', error);
+      alert('Failed to regamble. Please try again.');
+      setIsAnimating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 py-8 px-4 items-center justify-center">
-      <div className="max-w-4xl mx-auto w-full">
-        {/* Hero Section */}
+        <div className="max-w-4xl mx-auto w-full">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-foreground mb-4">
             Pair Programming Lottery
@@ -85,7 +116,6 @@ function Index() {
           </p>
         </div>
 
-        {/* Generate Pairing Button */}
         <div className="text-center mb-8">
           <button
             onClick={handleGeneratePairing}
@@ -96,15 +126,13 @@ function Index() {
           </button>
         </div>
 
-        {/* Pairing Result */}
         <PairingResult
           user1={currentPairing?.user1 || null}
           user2={currentPairing?.user2 || null}
           isAnimating={isAnimating}
         />
 
-        {/* Pairing History */}
-        <WinnersHistory winners={history} />
+        <WinnersHistory winners={history} onRegamble={handleRegamble} />
 
       </div>
     </div>

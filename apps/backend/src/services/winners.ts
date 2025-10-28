@@ -35,3 +35,32 @@ export async function getLatestPairing(): Promise<History | null> {
 
   return history;
 }
+
+export async function regenerateLatestPairing(): Promise<History | null> {
+  const latest = await getLatestPairing();
+  if (!latest) return null;
+
+  let { user1, user2 } = await generateRandomPairing();
+
+  while (
+    (user1.name === latest.firstWinnerName && user2.name === latest.secondWinnerName) ||
+    (user1.name === latest.secondWinnerName && user2.name === latest.firstWinnerName)
+  ) {
+    const newPair = await generateRandomPairing();
+    user1 = newPair.user1;
+    user2 = newPair.user2;
+  }
+
+  await prisma.history.update({
+    where: { id: latest.id },
+    data: {
+      firstWinnerName: user1.name,
+      firstWinnerGithub: user1.github,
+      secondWinnerName: user2.name,
+      secondWinnerGithub: user2.github,
+    },
+  });
+
+  logger.info('Latest pairing regenerated');
+  return await getLatestPairing();
+}

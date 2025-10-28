@@ -3,7 +3,7 @@ import { UsersArraySchema } from '@/types/user';
 import { PairingSchema } from '@/types/pairing';
 import { HistorySchema } from '@/types/winner';
 import { getActiveUsers, generateRandomPairing } from '@/services/users';
-import { generateAndSavePairing, getPairingHistory, getLatestPairing } from '@/services/winners';
+import { generateAndSavePairing, getPairingHistory, getLatestPairing, regenerateLatestPairing } from '@/services/winners';
 import { z } from 'zod';
 
 const healthProcedure = os.handler(() => ({
@@ -33,6 +33,10 @@ const getLatestPairingProcedure = os
   .output(HistorySchema.nullable())
   .handler(async () => await getLatestPairing());
 
+const regenerateLatestPairingProcedure = os
+  .output(HistorySchema.nullable())
+  .handler(async () => await regenerateLatestPairing());
+
 export const router = {
   health: healthProcedure,
   getUsers: getUsersProcedure,
@@ -40,6 +44,7 @@ export const router = {
   generateAndSavePairing: generateAndSavePairingProcedure,
   getPairingHistory: getPairingHistoryProcedure,
   getLatestPairing: getLatestPairingProcedure,
+  regenerateLatestPairing: regenerateLatestPairingProcedure,
 };
 
 export type Router = typeof router;

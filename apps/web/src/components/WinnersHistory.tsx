@@ -1,9 +1,11 @@
 import { User } from '@/types/user';
 import type { History } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface WinnersHistoryProps {
   winners: History[];
+  onRegamble?: () => void;
 }
 
 interface UserInfoProps {
@@ -56,7 +58,7 @@ function UserInfo({ user }: UserInfoProps) {
   );
 }
 
-export function WinnersHistory({ winners }: WinnersHistoryProps) {
+export function WinnersHistory({ winners, onRegamble }: WinnersHistoryProps) {
   if (winners.length === 0) {
     return null;
   }
@@ -65,7 +67,7 @@ export function WinnersHistory({ winners }: WinnersHistoryProps) {
     <div className="mt-12">
       <h2 className="text-2xl font-bold mb-4">Pairing History</h2>
       <div className="space-y-3">
-        {winners.map((history) => (
+        {winners.map((history, index) => (
           <Card key={history.id} className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex-1">
@@ -84,6 +86,11 @@ export function WinnersHistory({ winners }: WinnersHistoryProps) {
                   <UserInfo user={{ name: history.secondWinnerName, github: history.secondWinnerGithub, active: true }} />
                 </div>
               </div>
+              {index === 0 && onRegamble && (
+                <Button onClick={onRegamble} variant="outline" size="sm">
+                  Regamble
+                </Button>
+              )}
             </div>
           </Card>
         ))}
