@@ -25,7 +25,7 @@ export function PairingResult({ user1, user2, isAnimating }: PairingResultProps)
     fetchUsers();
   }, []);
 
-  if (!user1 || !user2) {
+  if (!isAnimating && !user1 && !user2) {
     return (
       <div className="text-center py-12 text-muted-foreground">
         <p className="text-lg">Click the Gamble button to select a random pair</p>
@@ -42,13 +42,15 @@ export function PairingResult({ user1, user2, isAnimating }: PairingResultProps)
 }
 
 interface SlotMachineCardProps {
-  user: User;
+  user: User | null;
   isAnimating: boolean;
   allUsers: User[];
 }
 
 function SlotMachineCard({ user, isAnimating, allUsers }: SlotMachineCardProps) {
-  const [displayUser, setDisplayUser] = useState(user);
+  const [displayUser, setDisplayUser] = useState<User | null>(user);
+
+  if (!user && !isAnimating) return null;
 
   useEffect(() => {
     if (!isAnimating) {
@@ -105,65 +107,73 @@ function SlotMachineCard({ user, isAnimating, allUsers }: SlotMachineCardProps) 
       )}
 
       <div className="relative">
-        <motion.div
-          key={displayUser.name}
-          initial={isAnimating ? { y: -20, opacity: 0, filter: 'blur(4px)' } : false}
-          animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
-          transition={{ duration: 0.15 }}
-          className="flex flex-col items-center"
-        >
-          <div className="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-primary shadow-xl">
-            {displayUser.github ? (
-              <img
-                src={`https://github.com/${displayUser.github}.png?size=200`}
-                alt={displayUser.name}
-                className={cn(
-                  'w-full h-full object-cover',
-                  isAnimating && 'blur-[2px]'
-                )}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div
-              className={cn(
-                'absolute inset-0 flex items-center justify-center bg-primary text-primary-foreground text-3xl font-bold',
-                displayUser.github && 'hidden'
-              )}
-            >
-              {displayUser.name
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2)}
-            </div>
+        {!displayUser ? (
+          <div className="flex flex-col items-center">
+            <div className="w-32 h-32 mb-4 rounded-full bg-primary/20 animate-pulse"></div>
+            <div className="h-6 bg-primary/20 rounded animate-pulse mb-2"></div>
+            <div className="h-4 bg-primary/20 rounded animate-pulse"></div>
           </div>
-
-          <h3
-            className={cn(
-              'text-2xl font-bold text-foreground mb-2',
-              isAnimating && 'blur-sm'
-            )}
+        ) : (
+          <motion.div
+            key={displayUser.name}
+            initial={isAnimating ? { y: -20, opacity: 0, filter: 'blur(4px)' } : false}
+            animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+            transition={{ duration: 0.15 }}
+            className="flex flex-col items-center"
           >
-            {displayUser.name}
-          </h3>
-          {displayUser.github && (
-            <a
-              href={`https://github.com/${displayUser.github}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <div className="relative w-32 h-32 mb-4 rounded-full overflow-hidden border-4 border-primary shadow-xl">
+              {displayUser.github ? (
+                <img
+                  src={`https://github.com/${displayUser.github}.png?size=200`}
+                  alt={displayUser.name}
+                  className={cn(
+                    'w-full h-full object-cover',
+                    isAnimating && 'blur-[2px]'
+                  )}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div
+                className={cn(
+                  'absolute inset-0 flex items-center justify-center bg-primary text-primary-foreground text-3xl font-bold',
+                  displayUser.github && 'hidden'
+                )}
+              >
+                {displayUser.name
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2)}
+              </div>
+            </div>
+
+            <h3
               className={cn(
-                'text-sm text-muted-foreground hover:text-primary transition-colors',
-                isAnimating && 'blur-sm pointer-events-none'
+                'text-2xl font-bold text-foreground mb-2',
+                isAnimating && 'blur-sm'
               )}
             >
-              @{displayUser.github}
-            </a>
-          )}
-        </motion.div>
+              {displayUser.name}
+            </h3>
+            {displayUser.github && (
+              <a
+                href={`https://github.com/${displayUser.github}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'text-sm text-muted-foreground hover:text-primary transition-colors',
+                  isAnimating && 'blur-sm pointer-events-none'
+                )}
+              >
+                @{displayUser.github}
+              </a>
+            )}
+          </motion.div>
+        )}
       </div>
 
       {/* Final reveal animation */}

@@ -1,7 +1,10 @@
 import { os } from '@orpc/server';
 import { UsersArraySchema } from '@/types/user';
 import { PairingSchema } from '@/types/pairing';
+import { HistorySchema } from '@/types/winner';
 import { getActiveUsers, generateRandomPairing } from '@/services/users';
+import { generateAndSavePairing, getPairingHistory, getLatestPairing } from '@/services/winners';
+import { z } from 'zod';
 
 const healthProcedure = os.handler(() => ({
   status: 'ok',
@@ -11,17 +14,42 @@ const healthProcedure = os.handler(() => ({
 
 const getUsersProcedure = os
   .output(UsersArraySchema)
-  .handler(() => getActiveUsers());
+  .handler(async () => await getActiveUsers());
 
-const generatePairingProcedure = os.output(PairingSchema).handler(() => {
-  const { user1, user2 } = generateRandomPairing();
+const generatePairingProcedure = os.output(PairingSchema).handler(async () => {
+  const { user1, user2 } = await generateRandomPairing();
   return { user1, user2, timestamp: new Date().toISOString() };
 });
+
+const generateAndSavePairingProcedure = os
+  .output(PairingSchema)
+  .handler(async () => await generateAndSavePairing());
+
+const getPairingHistoryProcedure = os
+  .output(z.array(HistorySchema))
+  .handler(async () => await getPairingHistory());
+
+const getLatestPairingProcedure = os
+  .output(HistorySchema.nullable())
+  .handler(async () => await getLatestPairing());
 
 export const router = {
   health: healthProcedure,
   getUsers: getUsersProcedure,
   generatePairing: generatePairingProcedure,
+  generateAndSavePairing: generateAndSavePairingProcedure,
+  getPairingHistory: getPairingHistoryProcedure,
+  getLatestPairing: getLatestPairingProcedure,
 };
 
 export type Router = typeof router;
+
+// Define History type for frontend use (matches Prisma model)
+export interface History {
+  id: number;
+  firstWinnerName: string;
+  firstWinnerGithub: string;
+  secondWinnerName: string;
+  secondWinnerGithub: string;
+  createdAt: Date;
+}

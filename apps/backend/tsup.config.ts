@@ -7,6 +7,7 @@ export default defineConfig({
     compilerOptions: {
       composite: false,
     },
+    exclude: ['src/generated/**'],
   },
   splitting: false,
   sourcemap: true,

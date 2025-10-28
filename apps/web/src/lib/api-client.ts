@@ -1,4 +1,4 @@
-import type { Router } from '@repo/backend/src/router';
+import type { Router, History } from '@repo/backend/src/router';
 import type { RouterClient } from '@orpc/server';
 import { createORPCClient } from '@orpc/client';
 import { RPCLink } from '@orpc/client/fetch';
@@ -8,3 +8,6 @@ const link = new RPCLink({
 });
 
 export const apiClient: RouterClient<Router> = createORPCClient(link);
+
+// Re-export History type for use in components
+export type { History };

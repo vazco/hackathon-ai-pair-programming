@@ -1,36 +1,71 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import { PairingResult } from '@/components/PairingResult';
-import { PairingHistory } from '@/components/PairingHistory';
-import { apiClient } from '@/lib/api-client';
+import { WinnersHistory } from '@/components/WinnersHistory';
+import { apiClient, type History } from '@/lib/api-client';
 import { Pairing } from '@/types/user';
+import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 function Index() {
   const [currentPairing, setCurrentPairing] = useState<Pairing | null>(null);
-  const [pairingHistory, setPairingHistory] = useState<Pairing[]>([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [history, setHistory] = useState<History[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { playRandomizingSound, stopRandomizingSound, playWinnerSound } = useSoundEffects();
 
-  const handleGamble = async () => {
+  // Load history on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const historyData = await apiClient.getPairingHistory();
+        setHistory(historyData);
+      } catch (error) {
+        console.error('Failed to load history:', error);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Play randomizing sound when animation starts and stop when it ends
+  useEffect(() => {
+    if (isAnimating) {
+      playRandomizingSound();
+    } else {
+      stopRandomizingSound();
+    }
+  }, [isAnimating, playRandomizingSound, stopRandomizingSound]);
+
+  // Play winner sound when pairing is revealed
+  useEffect(() => {
+    if (!isAnimating && currentPairing) {
+      playWinnerSound();
+    }
+  }, [isAnimating, currentPairing, playWinnerSound]);
+
+  const handleGeneratePairing = async () => {
     try {
       setIsLoading(true);
       setIsAnimating(true);
 
       // Animate for 2.5 seconds before showing result
-      const [pairing] = await Promise.all([
-        apiClient.generatePairing(),
+      const [pairingData] = await Promise.all([
+        apiClient.generateAndSavePairing(),
         new Promise((resolve) => setTimeout(resolve, 2500)),
       ]);
 
       setIsAnimating(false);
-      setCurrentPairing(pairing);
+      setCurrentPairing(pairingData);
 
-      // Add to history
-      setPairingHistory((prev) => [pairing, ...prev]);
+      // Refresh history
+      const historyData = await apiClient.getPairingHistory();
+      setHistory(historyData);
     } catch (error) {
       console.error('Failed to generate pairing:', error);
-      alert('Failed to generate pairing. Please try again.');
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate pairing. Please try again.'
+      );
       setIsAnimating(false);
     } finally {
       setIsLoading(false);
@@ -46,17 +81,19 @@ function Index() {
             Pair Programming Lottery
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            Click the button below to randomly select a programming pair
+            Generate random pairings for pair programming sessions
           </p>
+        </div>
 
-          <Button
-            onClick={handleGamble}
-            disabled={isLoading}
-            size="lg"
-            className="text-xl px-12 py-6 h-auto font-bold shadow-lg hover:shadow-xl transition-all"
+        {/* Generate Pairing Button */}
+        <div className="text-center mb-8">
+          <button
+            onClick={handleGeneratePairing}
+            disabled={isLoading || isAnimating}
+            className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading ? 'Gambling...' : 'Run the Gamble!'}
-          </Button>
+            {isLoading || isAnimating ? 'Generating...' : 'Run the Gamble!'}
+          </button>
         </div>
 
         {/* Pairing Result */}
@@ -67,7 +104,8 @@ function Index() {
         />
 
         {/* Pairing History */}
-        <PairingHistory pairings={pairingHistory} />
+        <WinnersHistory winners={history} />
+
       </div>
     </div>
   );

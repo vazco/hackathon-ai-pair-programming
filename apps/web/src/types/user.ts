@@ -9,3 +9,9 @@ export interface Pairing {
   user2: User;
   timestamp: string;
 }
+
+export interface Winner {
+  pairing: Pairing;
+  selectedAt: string;
+  week: string;
+}

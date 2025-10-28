@@ -91,6 +91,19 @@ packages/
 
 **Important:** The backend exports `router.ts` as a build entry point so the frontend can import types without bundling backend code.
 
+### Database Schema
+
+The application uses SQLite as the database provider. The schema consists of a single `History` table that stores the pairing history:
+
+- `id`: Auto-incrementing primary key
+- `firstWinnerName`: Name of the first winner in the pair
+- `firstWinnerGithub`: GitHub username of the first winner
+- `secondWinnerName`: Name of the second winner in the pair
+- `secondWinnerGithub`: GitHub username of the second winner
+- `createdAt`: Timestamp when the pairing was created
+
+Indexes are set on `firstWinnerGithub` and `secondWinnerGithub` for efficient querying.
+
 ### Frontend Architecture (`apps/web`)
 
 - **Router:** TanStack Router (file-based routing in `src/routes/`)
@@ -148,3 +161,4 @@ When editing code in this repository, please follow these guidelines:
 - Ensure that any changes to shared types or schemas are reflected in both backend and frontend
 - Write declarative code with clear function and variable names
 - Don't create comments for obvious code; focus on clarity through code itself
+- Always prefer types over interfaces
