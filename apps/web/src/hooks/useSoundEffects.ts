@@ -78,7 +78,8 @@ export function useSoundEffects() {
       const now = audioContext.currentTime;
 
       try {
-        const { oscillator1, oscillator2, lfoOscillator, gainNode } = randomizingSoundNodesRef.current;
+        const { oscillator1, oscillator2, lfoOscillator, gainNode } =
+          randomizingSoundNodesRef.current;
 
         gainNode.gain.cancelScheduledValues(now);
         gainNode.gain.setValueAtTime(gainNode.gain.value, now);
@@ -87,8 +88,7 @@ export function useSoundEffects() {
         oscillator1.stop(now + 0.1);
         oscillator2.stop(now + 0.1);
         lfoOscillator.stop(now + 0.1);
-      } catch (error) {
-      }
+      } catch (error) {}
 
       randomizingSoundNodesRef.current = null;
     }
@@ -99,9 +99,9 @@ export function useSoundEffects() {
     const now = audioContext.currentTime;
 
     const notes = [
-      { freq: 523.25, start: 0, duration: 0.15 },      // C5
-      { freq: 659.25, start: 0.1, duration: 0.15 },    // E5
-      { freq: 783.99, start: 0.2, duration: 0.25 },    // G5
+      { freq: 523.25, start: 0, duration: 0.15 }, // C5
+      { freq: 659.25, start: 0.1, duration: 0.15 }, // E5
+      { freq: 783.99, start: 0.2, duration: 0.25 }, // G5
     ];
 
     notes.forEach((note) => {

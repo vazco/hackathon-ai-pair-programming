@@ -10,7 +10,11 @@ interface PairingResultProps {
   isAnimating: boolean;
 }
 
-export function PairingResult({ user1, user2, isAnimating }: PairingResultProps) {
+export function PairingResult({
+  user1,
+  user2,
+  isAnimating,
+}: PairingResultProps) {
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -28,15 +32,25 @@ export function PairingResult({ user1, user2, isAnimating }: PairingResultProps)
   if (!isAnimating && !user1 && !user2) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg">Click the Gamble button to select a random pair</p>
+        <p className="text-lg">
+          Click the Gamble button to select a random pair
+        </p>
       </div>
     );
   }
 
   return (
     <div className="grid md:grid-cols-2 gap-6 py-8">
-      <SlotMachineCard user={user1} isAnimating={isAnimating} allUsers={allUsers} />
-      <SlotMachineCard user={user2} isAnimating={isAnimating} allUsers={allUsers} />
+      <SlotMachineCard
+        user={user1}
+        isAnimating={isAnimating}
+        allUsers={allUsers}
+      />
+      <SlotMachineCard
+        user={user2}
+        isAnimating={isAnimating}
+        allUsers={allUsers}
+      />
     </div>
   );
 }
@@ -47,7 +61,11 @@ interface SlotMachineCardProps {
   allUsers: User[];
 }
 
-function SlotMachineCard({ user, isAnimating, allUsers }: SlotMachineCardProps) {
+function SlotMachineCard({
+  user,
+  isAnimating,
+  allUsers,
+}: SlotMachineCardProps) {
   const [displayUser, setDisplayUser] = useState<User | null>(user);
 
   if (!user && !isAnimating) return null;
@@ -116,7 +134,9 @@ function SlotMachineCard({ user, isAnimating, allUsers }: SlotMachineCardProps) 
         ) : (
           <motion.div
             key={displayUser.name}
-            initial={isAnimating ? { y: -20, opacity: 0, filter: 'blur(4px)' } : false}
+            initial={
+              isAnimating ? { y: -20, opacity: 0, filter: 'blur(4px)' } : false
+            }
             animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
             transition={{ duration: 0.15 }}
             className="flex flex-col items-center"
@@ -132,7 +152,9 @@ function SlotMachineCard({ user, isAnimating, allUsers }: SlotMachineCardProps) 
                   )}
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                    e.currentTarget.nextElementSibling?.classList.remove(
+                      'hidden'
+                    );
                   }}
                 />
               ) : null}

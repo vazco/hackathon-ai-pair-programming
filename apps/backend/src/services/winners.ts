@@ -1,8 +1,8 @@
-import type { History } from '@/router';
+import type { History } from '@/schemas/winner';
 import { generateRandomPairing } from './users';
 import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/db';
-import type { Pairing } from '@/types/pairing';
+import type { Pairing } from '@/schemas/pairing';
 
 export async function generateAndSavePairing(): Promise<Pairing> {
   const { user1, user2 } = await generateRandomPairing();
@@ -43,8 +43,10 @@ export async function regenerateLatestPairing(): Promise<History | null> {
   let { user1, user2 } = await generateRandomPairing();
 
   while (
-    (user1.name === latest.firstWinnerName && user2.name === latest.secondWinnerName) ||
-    (user1.name === latest.secondWinnerName && user2.name === latest.firstWinnerName)
+    (user1.name === latest.firstWinnerName &&
+      user2.name === latest.secondWinnerName) ||
+    (user1.name === latest.secondWinnerName &&
+      user2.name === latest.firstWinnerName)
   ) {
     const newPair = await generateRandomPairing();
     user1 = newPair.user1;
@@ -65,7 +67,9 @@ export async function regenerateLatestPairing(): Promise<History | null> {
   return await getLatestPairing();
 }
 
-export async function markPairingCompleted(id: number): Promise<History | null> {
+export async function markPairingCompleted(
+  id: number
+): Promise<History | null> {
   try {
     const updated = await prisma.history.update({
       where: { id },
@@ -79,7 +83,9 @@ export async function markPairingCompleted(id: number): Promise<History | null> 
   }
 }
 
-export async function undoPairingCompleted(id: number): Promise<History | null> {
+export async function undoPairingCompleted(
+  id: number
+): Promise<History | null> {
   try {
     const updated = await prisma.history.update({
       where: { id },

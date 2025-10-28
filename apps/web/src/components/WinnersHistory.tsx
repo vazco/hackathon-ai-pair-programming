@@ -21,7 +21,9 @@ interface UserInfoProps {
 function UserInfo({ user, completed = false }: UserInfoProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`w-10 h-10 rounded-full overflow-hidden border-2 flex-shrink-0 ${completed ? 'border-muted-foreground/50' : 'border-primary'}`}>
+      <div
+        className={`w-10 h-10 rounded-full overflow-hidden border-2 flex-shrink-0 ${completed ? 'border-muted-foreground/50' : 'border-primary'}`}
+      >
         {user.github ? (
           <img
             src={`https://github.com/${user.github}.png?size=100`}
@@ -48,7 +50,11 @@ function UserInfo({ user, completed = false }: UserInfoProps) {
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <span className={`font-medium ${completed ? 'text-muted-foreground' : 'text-foreground'}`}>{user.name}</span>
+        <span
+          className={`font-medium ${completed ? 'text-muted-foreground' : 'text-foreground'}`}
+        >
+          {user.name}
+        </span>
         {user.github && (
           <a
             href={`https://github.com/${user.github}`}
@@ -64,7 +70,13 @@ function UserInfo({ user, completed = false }: UserInfoProps) {
   );
 }
 
-export function WinnersHistory({ winners, onRegamble, onMarkCompleted, onUndoCompleted, recentlyCompleted = [] }: WinnersHistoryProps) {
+export function WinnersHistory({
+  winners,
+  onRegamble,
+  onMarkCompleted,
+  onUndoCompleted,
+  recentlyCompleted = [],
+}: WinnersHistoryProps) {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
   useEffect(() => {
@@ -89,11 +101,16 @@ export function WinnersHistory({ winners, onRegamble, onMarkCompleted, onUndoCom
       <h2 className="text-2xl font-bold mb-4">Pairing History</h2>
       <div className="space-y-3">
         {winners.map((history, index) => (
-          <Card key={history.id} className={`p-4 ${history.completed ? 'opacity-60 bg-muted/20' : ''}`}>
+          <Card
+            key={history.id}
+            className={`p-4 ${history.completed ? 'opacity-60 bg-muted/20' : ''}`}
+          >
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className={`text-sm ${history.completed ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}>
+                  <span
+                    className={`text-sm ${history.completed ? 'text-muted-foreground/70' : 'text-muted-foreground'}`}
+                  >
                     {new Date(history.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -108,9 +125,27 @@ export function WinnersHistory({ winners, onRegamble, onMarkCompleted, onUndoCom
                   )}
                 </div>
                 <div className="flex items-center gap-4">
-                  <UserInfo user={{ name: history.firstWinnerName, github: history.firstWinnerGithub, active: true }} completed={history.completed} />
-                  <span className={`text-muted-foreground ${history.completed ? 'opacity-50' : ''}`}>×</span>
-                  <UserInfo user={{ name: history.secondWinnerName, github: history.secondWinnerGithub, active: true }} completed={history.completed} />
+                  <UserInfo
+                    user={{
+                      name: history.firstWinnerName,
+                      github: history.firstWinnerGithub,
+                      active: true,
+                    }}
+                    completed={history.completed}
+                  />
+                  <span
+                    className={`text-muted-foreground ${history.completed ? 'opacity-50' : ''}`}
+                  >
+                    ×
+                  </span>
+                  <UserInfo
+                    user={{
+                      name: history.secondWinnerName,
+                      github: history.secondWinnerGithub,
+                      active: true,
+                    }}
+                    completed={history.completed}
+                  />
                 </div>
               </div>
               <div className="flex gap-2">
@@ -119,20 +154,37 @@ export function WinnersHistory({ winners, onRegamble, onMarkCompleted, onUndoCom
                     Regamble
                   </Button>
                 )}
-                {recentlyCompleted.some(item => item.id === history.id) && onUndoCompleted && (() => {
-                  const item = recentlyCompleted.find(item => item.id === history.id);
-                  const remainingTime = item ? getRemainingTime(item.timestamp) : 0;
-                  return remainingTime > 0 ? (
-                    <Button onClick={() => onUndoCompleted(history.id)} variant="outline" size="sm" className="text-orange-600 border-orange-600 hover:bg-orange-50">
-                      Undo ({remainingTime}s)
+                {recentlyCompleted.some((item) => item.id === history.id) &&
+                  onUndoCompleted &&
+                  (() => {
+                    const item = recentlyCompleted.find(
+                      (item) => item.id === history.id
+                    );
+                    const remainingTime = item
+                      ? getRemainingTime(item.timestamp)
+                      : 0;
+                    return remainingTime > 0 ? (
+                      <Button
+                        onClick={() => onUndoCompleted(history.id)}
+                        variant="outline"
+                        size="sm"
+                        className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                      >
+                        Undo ({remainingTime}s)
+                      </Button>
+                    ) : null;
+                  })()}
+                {!history.completed &&
+                  !recentlyCompleted.some((item) => item.id === history.id) &&
+                  onMarkCompleted && (
+                    <Button
+                      onClick={() => onMarkCompleted(history.id)}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Mark Completed
                     </Button>
-                  ) : null;
-                })()}
-                {!history.completed && !recentlyCompleted.some(item => item.id === history.id) && onMarkCompleted && (
-                  <Button onClick={() => onMarkCompleted(history.id)} variant="outline" size="sm">
-                    Mark Completed
-                  </Button>
-                )}
+                  )}
               </div>
             </div>
           </Card>
