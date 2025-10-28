@@ -1,0 +1,30 @@
+{
+  "name": "@repo/backend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "lint": "eslint --fix .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/contract": "1.9.3",
+    "@orpc/server": "1.9.3",
+    "pino": "10.1.0",
+    "pino-pretty": "13.1.2",
+    "socket.io": "4.8.1",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "24.9.1",
+    "tsup": "8.5.0",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "undici-types": "7.16.0"
+  }
+}
