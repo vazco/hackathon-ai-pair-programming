@@ -10,4 +10,9 @@ export const HistorySchema = z.object({
   createdAt: z.date(),
 });
 
-export type { History } from '@/generated/prisma';
+export const HistoryWithRemindersSchema = z.object({
+  history: HistorySchema.nullable(),
+  reminderUsers: z.array(z.string()),
+});
+
+export type HistoryWithReminders = z.infer<typeof HistoryWithRemindersSchema>;

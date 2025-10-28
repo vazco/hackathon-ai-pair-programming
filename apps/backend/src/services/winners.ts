@@ -1,10 +1,8 @@
-import type { History } from '@/schemas/winner';
-import { generateRandomPairing } from './users';
-import { logger } from '@/lib/logger';
 import { prisma } from '@/lib/db';
-import type { Pairing } from '@/schemas/pairing';
+import { logger } from '@/lib/logger';
+import { generateRandomPairing } from './users';
 
-export async function generateAndSavePairing(): Promise<Pairing> {
+export async function generateAndSavePairing() {
   const { user1, user2 } = await generateRandomPairing();
 
   await prisma.history.create({
@@ -17,10 +15,40 @@ export async function generateAndSavePairing(): Promise<Pairing> {
   });
 
   logger.info('Pairing saved to history');
-  return { user1, user2, timestamp: new Date().toISOString() };
+
+  const { getAllUsers } = await import('./users');
+  const users = await getAllUsers();
+  const history = await getPairingHistory();
+
+  const reminderUsers: string[] = [];
+
+  for (const user of users) {
+    if (!user.github) continue;
+
+    const userSelections = history
+      .filter(
+        (h) =>
+          h.firstWinnerGithub === user.github ||
+          h.secondWinnerGithub === user.github
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 5);
+
+    if (
+      userSelections.length >= 5 &&
+      userSelections.every((h) => !h.completed)
+    ) {
+      reminderUsers.push(user.github);
+    }
+  }
+
+  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
 }
 
-export async function getPairingHistory(): Promise<History[]> {
+export async function getPairingHistory() {
   const history = await prisma.history.findMany({
     orderBy: { createdAt: 'desc' },
   });
@@ -28,7 +56,7 @@ export async function getPairingHistory(): Promise<History[]> {
   return history;
 }
 
-export async function getLatestPairing(): Promise<History | null> {
+export async function getLatestPairing() {
   const history = await prisma.history.findFirst({
     orderBy: { createdAt: 'desc' },
   });
@@ -36,7 +64,7 @@ export async function getLatestPairing(): Promise<History | null> {
   return history;
 }
 
-export async function regenerateLatestPairing(): Promise<History | null> {
+export async function regenerateLatestPairing() {
   const latest = await getLatestPairing();
   if (!latest) return null;
 
@@ -64,37 +92,126 @@ export async function regenerateLatestPairing(): Promise<History | null> {
   });
 
   logger.info('Latest pairing regenerated');
-  return await getLatestPairing();
+
+  // Calculate reminder users
+  const { getAllUsers } = await import('./users');
+  const users = await getAllUsers();
+  const history = await getPairingHistory();
+
+  const reminderUsers: string[] = [];
+
+  for (const user of users) {
+    if (!user.github) continue;
+
+    const userSelections = history
+      .filter(
+        (h) =>
+          h.firstWinnerGithub === user.github ||
+          h.secondWinnerGithub === user.github
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
+      .slice(0, 5);
+
+    if (
+      userSelections.length >= 5 &&
+      userSelections.every((h) => !h.completed)
+    ) {
+      reminderUsers.push(user.github);
+    }
+  }
+
+  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
 }
 
-export async function markPairingCompleted(
-  id: number
-): Promise<History | null> {
+export async function markPairingCompleted(id: number) {
   try {
     const updated = await prisma.history.update({
       where: { id },
       data: { completed: true },
     });
     logger.info(`Pairing ${id} marked as completed`);
-    return updated;
+
+    // Calculate reminder users
+    const { getAllUsers } = await import('./users');
+    const users = await getAllUsers();
+    const history = await getPairingHistory();
+
+    const reminderUsers: string[] = [];
+
+    for (const user of users) {
+      if (!user.github) continue;
+
+      const userSelections = history
+        .filter(
+          (h) =>
+            h.firstWinnerGithub === user.github ||
+            h.secondWinnerGithub === user.github
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 5);
+
+      if (
+        userSelections.length >= 5 &&
+        userSelections.every((h) => !h.completed)
+      ) {
+        reminderUsers.push(user.github);
+      }
+    }
+
+    return { history: updated, reminderUsers };
   } catch (error) {
     logger.error(`Failed to mark pairing ${id} as completed: ${error}`);
-    return null;
+    return { history: null, reminderUsers: [] };
   }
 }
 
-export async function undoPairingCompleted(
-  id: number
-): Promise<History | null> {
+export async function undoPairingCompleted(id: number) {
   try {
     const updated = await prisma.history.update({
       where: { id },
       data: { completed: false },
     });
     logger.info(`Pairing ${id} marked as not completed`);
-    return updated;
+
+    // Calculate reminder users
+    const { getAllUsers } = await import('./users');
+    const users = await getAllUsers();
+    const history = await getPairingHistory();
+
+    const reminderUsers: string[] = [];
+
+    for (const user of users) {
+      if (!user.github) continue;
+
+      const userSelections = history
+        .filter(
+          (h) =>
+            h.firstWinnerGithub === user.github ||
+            h.secondWinnerGithub === user.github
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        )
+        .slice(0, 5);
+
+      if (
+        userSelections.length >= 5 &&
+        userSelections.every((h) => !h.completed)
+      ) {
+        reminderUsers.push(user.github);
+      }
+    }
+
+    return { history: updated, reminderUsers };
   } catch (error) {
     logger.error(`Failed to undo pairing ${id} completion: ${error}`);
-    return null;
+    return { history: null, reminderUsers: [] };
   }
 }

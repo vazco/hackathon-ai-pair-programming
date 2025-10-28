@@ -5,6 +5,7 @@ export const PairingSchema = z.object({
   user1: UserSchema,
   user2: UserSchema,
   timestamp: z.string(),
+  reminderUsers: z.array(z.string()),
 });
 
 export type Pairing = z.infer<typeof PairingSchema>;

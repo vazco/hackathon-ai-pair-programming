@@ -14,6 +14,7 @@ function Index() {
   const [recentlyCompleted, setRecentlyCompleted] = useState<
     { id: number; timestamp: number }[]
   >([]);
+  const [reminderUsers, setReminderUsers] = useState<Set<string>>(new Set());
   const { playRandomizingSound, stopRandomizingSound, playWinnerSound } =
     useSoundEffects();
 
@@ -22,8 +23,42 @@ function Index() {
       try {
         const historyData = await apiClient.getPairingHistory();
         setHistory(historyData);
+
+        // Calculate initial reminder users from history
+        // This is a one-time calculation for initial load
+        const reminderSet = new Set<string>();
+        // Note: We don't have users data here, so we'll get it from history
+        const userGithubs = new Set<string>();
+        historyData.forEach((h: History) => {
+          if (h.firstWinnerGithub) userGithubs.add(h.firstWinnerGithub);
+          if (h.secondWinnerGithub) userGithubs.add(h.secondWinnerGithub);
+        });
+
+        for (const github of userGithubs) {
+          const userSelections = historyData
+            .filter(
+              (h: History) =>
+                h.firstWinnerGithub === github ||
+                h.secondWinnerGithub === github
+            )
+            .sort(
+              (a: History, b: History) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            )
+            .slice(0, 5);
+
+          if (
+            userSelections.length >= 5 &&
+            userSelections.every((h: History) => !h.completed)
+          ) {
+            reminderSet.add(github);
+          }
+        }
+
+        setReminderUsers(reminderSet);
       } catch (error) {
-        console.error('Failed to load history:', error);
+        console.error('Failed to load data:', error);
       }
     };
     loadData();
@@ -70,6 +105,7 @@ function Index() {
 
       const historyData = await apiClient.getPairingHistory();
       setHistory(historyData);
+      setReminderUsers(new Set(pairingData.reminderUsers));
     } catch (error) {
       console.error('Failed to generate pairing:', error);
       alert(
@@ -95,24 +131,14 @@ function Index() {
       setIsAnimating(false);
 
       if (regambledData) {
-        const newPairing: Pairing = {
-          user1: {
-            name: regambledData.firstWinnerName,
-            github: regambledData.firstWinnerGithub,
-            active: true,
-          },
-          user2: {
-            name: regambledData.secondWinnerName,
-            github: regambledData.secondWinnerGithub,
-            active: true,
-          },
-          timestamp: regambledData.createdAt.toISOString(),
-        };
-        setCurrentPairing(newPairing);
+        setCurrentPairing(regambledData);
       }
 
       const historyData = await apiClient.getPairingHistory();
       setHistory(historyData);
+      if (regambledData) {
+        setReminderUsers(new Set(regambledData.reminderUsers));
+      }
     } catch (error) {
       console.error('Failed to regamble:', error);
       alert('Failed to regamble. Please try again.');
@@ -122,9 +148,10 @@ function Index() {
 
   const handleMarkCompleted = async (id: number) => {
     try {
-      await apiClient.markCompleted({ id });
+      const result = await apiClient.markCompleted({ id });
       const historyData = await apiClient.getPairingHistory();
       setHistory(historyData);
+      setReminderUsers(new Set(result.reminderUsers));
       setRecentlyCompleted((prev) => [...prev, { id, timestamp: Date.now() }]);
     } catch (error) {
       console.error('Failed to mark as completed:', error);
@@ -134,9 +161,10 @@ function Index() {
 
   const handleUndoCompleted = async (id: number) => {
     try {
-      await apiClient.undoCompleted({ id });
+      const result = await apiClient.undoCompleted({ id });
       const historyData = await apiClient.getPairingHistory();
       setHistory(historyData);
+      setReminderUsers(new Set(result.reminderUsers));
       setRecentlyCompleted((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       console.error('Failed to undo completion:', error);
@@ -170,6 +198,7 @@ function Index() {
           user1={currentPairing?.user1 || null}
           user2={currentPairing?.user2 || null}
           isAnimating={isAnimating}
+          reminderUsers={reminderUsers}
         />
 
         <WinnersHistory
@@ -178,6 +207,7 @@ function Index() {
           onMarkCompleted={handleMarkCompleted}
           onUndoCompleted={handleUndoCompleted}
           recentlyCompleted={recentlyCompleted}
+          reminderUsers={reminderUsers}
         />
       </div>
     </div>

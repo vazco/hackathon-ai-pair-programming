@@ -161,4 +161,4 @@ When editing code in this repository, please follow these guidelines:
 - Ensure that any changes to shared types or schemas are reflected in both backend and frontend
 - Write declarative code with clear function and variable names
 - Don't create comments for obvious code; focus on clarity through code itself
-- Always prefer types over interfaces
+- Always prefer types over interfaces (example `type User = { ... }` instead of `interface User { ... }`)

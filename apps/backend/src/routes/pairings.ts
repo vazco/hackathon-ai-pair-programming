@@ -1,6 +1,6 @@
 import { os } from '@orpc/server';
 import { PairingSchema } from '@/schemas/pairing';
-import { HistorySchema } from '@/schemas/winner';
+import { HistorySchema, HistoryWithRemindersSchema } from '@/schemas/winner';
 import {
   generateAndSavePairing,
   getPairingHistory,
@@ -24,17 +24,17 @@ const getLatestPairingProcedure = os
   .handler(async () => await getLatestPairing());
 
 const regenerateLatestPairingProcedure = os
-  .output(HistorySchema.nullable())
+  .output(PairingSchema.nullable())
   .handler(async () => await regenerateLatestPairing());
 
 const markCompletedProcedure = os
   .input(z.object({ id: z.number() }))
-  .output(HistorySchema.nullable())
+  .output(HistoryWithRemindersSchema)
   .handler(async ({ input }) => await markPairingCompleted(input.id));
 
 const undoCompletedProcedure = os
   .input(z.object({ id: z.number() }))
-  .output(HistorySchema.nullable())
+  .output(HistoryWithRemindersSchema)
   .handler(async ({ input }) => await undoPairingCompleted(input.id));
 
 export const pairingRoutes = {

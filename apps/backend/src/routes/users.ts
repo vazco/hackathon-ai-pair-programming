@@ -9,7 +9,12 @@ const getUsersProcedure = os
 
 const generatePairingProcedure = os.output(PairingSchema).handler(async () => {
   const { user1, user2 } = await generateRandomPairing();
-  return { user1, user2, timestamp: new Date().toISOString() };
+  return {
+    user1,
+    user2,
+    timestamp: new Date().toISOString(),
+    reminderUsers: [],
+  };
 });
 
 export const userRoutes = {

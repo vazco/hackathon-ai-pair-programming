@@ -2,7 +2,7 @@ import { User } from '@/types/user';
 import type { History } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface WinnersHistoryProps {
@@ -11,14 +11,16 @@ interface WinnersHistoryProps {
   onMarkCompleted?: (id: number) => void;
   onUndoCompleted?: (id: number) => void;
   recentlyCompleted?: { id: number; timestamp: number }[];
+  reminderUsers?: Set<string>;
 }
 
 interface UserInfoProps {
   user: User;
   completed?: boolean;
+  reminderUsers?: Set<string>;
 }
 
-function UserInfo({ user, completed = false }: UserInfoProps) {
+function UserInfo({ user, completed = false, reminderUsers }: UserInfoProps) {
   return (
     <div className="flex items-center gap-3">
       <div
@@ -55,6 +57,9 @@ function UserInfo({ user, completed = false }: UserInfoProps) {
         >
           {user.name}
         </span>
+        {user.github && reminderUsers?.has(user.github) && (
+          <AlertTriangle className="w-4 h-4 text-yellow-500" />
+        )}
         {user.github && (
           <a
             href={`https://github.com/${user.github}`}
@@ -76,6 +81,7 @@ export function WinnersHistory({
   onMarkCompleted,
   onUndoCompleted,
   recentlyCompleted = [],
+  reminderUsers,
 }: WinnersHistoryProps) {
   const [currentTime, setCurrentTime] = useState(Date.now());
 
@@ -132,6 +138,7 @@ export function WinnersHistory({
                       active: true,
                     }}
                     completed={history.completed}
+                    reminderUsers={reminderUsers}
                   />
                   <span
                     className={`text-muted-foreground ${history.completed ? 'opacity-50' : ''}`}
@@ -145,6 +152,7 @@ export function WinnersHistory({
                       active: true,
                     }}
                     completed={history.completed}
+                    reminderUsers={reminderUsers}
                   />
                 </div>
               </div>
