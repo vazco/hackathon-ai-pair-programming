@@ -6,6 +6,7 @@ export const HistorySchema = z.object({
   firstWinnerGithub: z.string(),
   secondWinnerName: z.string(),
   secondWinnerGithub: z.string(),
+  completed: z.boolean(),
   createdAt: z.date(),
 });
 

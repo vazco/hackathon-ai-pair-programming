@@ -17,6 +17,7 @@ model History {
   firstWinnerGithub String
   secondWinnerName  String
   secondWinnerGithub String
+  completed         Boolean  @default(false)
   createdAt         DateTime @default(now())
 
   @@index([firstWinnerGithub])

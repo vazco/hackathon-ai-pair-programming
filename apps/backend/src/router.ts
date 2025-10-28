@@ -3,7 +3,7 @@ import { UsersArraySchema } from '@/types/user';
 import { PairingSchema } from '@/types/pairing';
 import { HistorySchema } from '@/types/winner';
 import { getActiveUsers, generateRandomPairing } from '@/services/users';
-import { generateAndSavePairing, getPairingHistory, getLatestPairing, regenerateLatestPairing } from '@/services/winners';
+import { generateAndSavePairing, getPairingHistory, getLatestPairing, regenerateLatestPairing, markPairingCompleted, undoPairingCompleted } from '@/services/winners';
 import { z } from 'zod';
 
 const healthProcedure = os.handler(() => ({
@@ -37,6 +37,16 @@ const regenerateLatestPairingProcedure = os
   .output(HistorySchema.nullable())
   .handler(async () => await regenerateLatestPairing());
 
+const markCompletedProcedure = os
+  .input(z.object({ id: z.number() }))
+  .output(HistorySchema.nullable())
+  .handler(async ({ input }) => await markPairingCompleted(input.id));
+
+const undoCompletedProcedure = os
+  .input(z.object({ id: z.number() }))
+  .output(HistorySchema.nullable())
+  .handler(async ({ input }) => await undoPairingCompleted(input.id));
+
 export const router = {
   health: healthProcedure,
   getUsers: getUsersProcedure,
@@ -45,6 +55,8 @@ export const router = {
   getPairingHistory: getPairingHistoryProcedure,
   getLatestPairing: getLatestPairingProcedure,
   regenerateLatestPairing: regenerateLatestPairingProcedure,
+  markCompleted: markCompletedProcedure,
+  undoCompleted: undoCompletedProcedure,
 };
 
 export type Router = typeof router;
@@ -56,5 +68,6 @@ export interface History {
   firstWinnerGithub: string;
   secondWinnerName: string;
   secondWinnerGithub: string;
+  completed: boolean;
   createdAt: Date;
 }

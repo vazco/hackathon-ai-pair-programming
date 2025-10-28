@@ -11,6 +11,7 @@ function Index() {
   const [isAnimating, setIsAnimating] = useState(false);
   const [history, setHistory] = useState<History[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentlyCompleted, setRecentlyCompleted] = useState<{ id: number; timestamp: number }[]>([]);
   const { playRandomizingSound, stopRandomizingSound, playWinnerSound } = useSoundEffects();
 
   useEffect(() => {
@@ -38,6 +39,16 @@ function Index() {
       playWinnerSound();
     }
   }, [isAnimating, currentPairing, playWinnerSound]);
+
+  // Clean up expired undo items
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setRecentlyCompleted(prev => prev.filter(item => now - item.timestamp < 5000));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGeneratePairing = async () => {
     try {
@@ -104,6 +115,30 @@ function Index() {
     }
   };
 
+  const handleMarkCompleted = async (id: number) => {
+    try {
+      await apiClient.markCompleted({ id });
+      const historyData = await apiClient.getPairingHistory();
+      setHistory(historyData);
+      setRecentlyCompleted(prev => [...prev, { id, timestamp: Date.now() }]);
+    } catch (error) {
+      console.error('Failed to mark as completed:', error);
+      alert('Failed to mark as completed. Please try again.');
+    }
+  };
+
+  const handleUndoCompleted = async (id: number) => {
+    try {
+      await apiClient.undoCompleted({ id });
+      const historyData = await apiClient.getPairingHistory();
+      setHistory(historyData);
+      setRecentlyCompleted(prev => prev.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Failed to undo completion:', error);
+      alert('Failed to undo completion. Please try again.');
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 py-8 px-4 items-center justify-center">
         <div className="max-w-4xl mx-auto w-full">
@@ -132,7 +167,13 @@ function Index() {
           isAnimating={isAnimating}
         />
 
-        <WinnersHistory winners={history} onRegamble={handleRegamble} />
+        <WinnersHistory 
+          winners={history} 
+          onRegamble={handleRegamble} 
+          onMarkCompleted={handleMarkCompleted}
+          onUndoCompleted={handleUndoCompleted}
+          recentlyCompleted={recentlyCompleted}
+        />
 
       </div>
     </div>

@@ -64,3 +64,31 @@ export async function regenerateLatestPairing(): Promise<History | null> {
   logger.info('Latest pairing regenerated');
   return await getLatestPairing();
 }
+
+export async function markPairingCompleted(id: number): Promise<History | null> {
+  try {
+    const updated = await prisma.history.update({
+      where: { id },
+      data: { completed: true },
+    });
+    logger.info(`Pairing ${id} marked as completed`);
+    return updated;
+  } catch (error) {
+    logger.error(`Failed to mark pairing ${id} as completed: ${error}`);
+    return null;
+  }
+}
+
+export async function undoPairingCompleted(id: number): Promise<History | null> {
+  try {
+    const updated = await prisma.history.update({
+      where: { id },
+      data: { completed: false },
+    });
+    logger.info(`Pairing ${id} marked as not completed`);
+    return updated;
+  } catch (error) {
+    logger.error(`Failed to undo pairing ${id} completion: ${error}`);
+    return null;
+  }
+}
