@@ -35,13 +35,11 @@ export default [
         },
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/semi': ['error', 'always'],
-      'semi': ['error', 'always'],
-      'no-console': 'error',
+      'no-console': 'warn',
     },
   },
   prettier,
   {
-    ignores: ['dist', 'node_modules', '.turbo', 'build', 'coverage'],
+    ignores: ['dist/**', 'node_modules/**', '.turbo/**', 'build/**', 'coverage/**'],
   },
 ]

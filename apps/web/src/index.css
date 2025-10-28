@@ -33,9 +33,9 @@
   --sidebar-accent-foreground: #111827;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #d87943;
-  --font-sans: Geist Mono, ui-monospace, monospace;
+  --font-sans: "Space Grotesk", ui-monospace, monospace;
   --font-serif: serif;
-  --font-mono: JetBrains Mono, monospace;
+  --font-mono: "JetBrains Mono", monospace;
   --radius: 0.75rem;
   --shadow-x: 0px;
   --shadow-y: 1px;
@@ -88,9 +88,9 @@
   --sidebar-accent-foreground: #c1c1c1;
   --sidebar-border: #222222;
   --sidebar-ring: #e78a53;
-  --font-sans: Geist Mono, ui-monospace, monospace;
+  --font-sans: "Space Grotesk", ui-monospace, monospace;
   --font-serif: serif;
-  --font-mono: JetBrains Mono, monospace;
+  --font-mono: "JetBrains Mono", monospace;
   --radius: 0.75rem;
   --shadow-x: 0px;
   --shadow-y: 1px;

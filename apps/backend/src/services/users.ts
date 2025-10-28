@@ -1,0 +1,59 @@
+import { User, UsersArraySchema } from '@/types/user';
+import { logger } from '@/lib/logger';
+
+// TODO: Base64 encoded user data from Google Groups (mocked)
+const ENCODED_USERS =
+  'JTVCJTdCJTIybmFtZSUyMjolMjJBbm5hJTIwUGFwcm9zJTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJJZGVseWElMjIlN0QsJTdCJTIybmFtZSUyMjolMjJEYW1pYW4lMjBFcnRlbCUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIyRGFtaWFuRXJ0ZWwlMjIlN0QsJTdCJTIybmFtZSUyMjolMjJEYW5pZWwlMjBCb2d1c3olMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMiUyMiU3RCwlN0IlMjJuYW1lJTIyOiUyMkRhbmllbCUyME1pZWxuaWslMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMmRtbG5rJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyRXJuZXN0JTIwVGVsdWslMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMkVybmVzdFRlbHVrJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyS2FtaWwlMjAlQzUlODFvY2h5JUM1JTg0c2tpJTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJrYW1pbEthbWlsc29uJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyS2FtaWwlMjBTemN6eXBpb3IlMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMm5leHh0R2VuJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyS29ucmFkJTIwQm9zYWslMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMk1vbnRldGglMjIlN0QsJTdCJTIybmFtZSUyMjolMjJLcnp5c3p0b2YlMjBSJUMzJUIzJUM1JUJDYWxza2klMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMmNyaXN0by1yYWJhbmklMjIlN0QsJTdCJTIybmFtZSUyMjolMjJLcnp5c3p0b2YlMjBTenV0JTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJza3liNHNzJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyTWFjaWVrJTIwU3Rhc2llJUM1JTgydWslMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMk1hY1J1c2hlciUyMiU3RCwlN0IlMjJuYW1lJTIyOiUyMk1hcmNpbiUyMFN6dXN0ZXIlMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMnN6dXN0ZXJtJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyTWFyY2luJTIwV3lkcmElMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMnJpbG1hc2FrZXIlMjIlN0QsJTdCJTIybmFtZSUyMjolMjJNYXRldXN6JTIwS3VycGV0JTIyLCUyMmFjdGl2ZSUyMjpmYWxzZSwlMjJnaXRodWIlMjI6JTIyS3VycGklMjIlN0QsJTdCJTIybmFtZSUyMjolMjJNaWNoYSVDNSU4MiUyMFdlc2tpZGElMjIsJTIyYWN0aXZlJTIyOnRydWUsJTIyZ2l0aHViJTIyOiUyMk1oYWwwMDclMjIlN0QsJTdCJTIybmFtZSUyMjolMjJNaWNoYSVDNSU4MiUyMFdpY3prJTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJtaWN3aWNjb2RlJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyTWljaGElQzUlODIlMjBaZW5kcmFuJTIyLCUyMmFjdGl2ZSUyMjpmYWxzZSwlMjJnaXRodWIlMjI6JTIyemVuZHJhbm0lMjIlN0QsJTdCJTIybmFtZSUyMjolMjJNaWtvJUM1JTgyYWolMjBQbHV0YSUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIycGx1dGFtaWtvbGFqJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyTWlrbyVDNSU4MmFqJTIwWmllbXNraSUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIyTmllemllbXNraSUyMiU3RCwlN0IlMjJuYW1lJTIyOiUyMlBhd2UlQzUlODIlMjBLdWxpZ293c2tpJTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJ1c2VyMTkwMSUyMiU3RCwlN0IlMjJuYW1lJTIyOiUyMlBpb3RyJTIwUG8lQzUlOUJwaWVjaCUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIycGlvdHJwb3NwaWVjaCUyMiU3RCwlN0IlMjJuYW1lJTIyOiUyMlBpb3RyJTIwVmFzc2V2JTIyLCUyMmFjdGl2ZSUyMjp0cnVlLCUyMmdpdGh1YiUyMjolMjJwaW90cnYxMDAxJTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyVG9tYXN6JTIwU2F3YXJ6eSVDNSU4NHNraSUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIyU2F3YXJ6JTIyJTdELCU3QiUyMm5hbWUlMjI6JTIyVm9sb2R5bXlyJTIwWmFraG92YWlrbyUyMiwlMjJhY3RpdmUlMjI6dHJ1ZSwlMjJnaXRodWIlMjI6JTIyemF4b3ZhaWtvJTIyJTdEJTVE';
+
+let cachedUsers: User[] | null = null;
+
+function decodeUsers(): User[] {
+  if (cachedUsers) {
+    return cachedUsers;
+  }
+
+  try {
+    const decodedBase64 = Buffer.from(ENCODED_USERS, 'base64').toString(
+      'utf-8'
+    );
+
+    const decodedJSON = decodeURIComponent(decodedBase64);
+    const parsed = JSON.parse(decodedJSON);
+
+    const users = UsersArraySchema.parse(parsed);
+
+    cachedUsers = users;
+    return users;
+  } catch (error) {
+    logger.error({ error }, 'Failed to decode users');
+    throw new Error('Failed to decode user data from Google Groups');
+  }
+}
+
+export function getAllUsers() {
+  return decodeUsers();
+}
+
+export function getActiveUsers() {
+  const allUsers = getAllUsers();
+  return allUsers.filter((user) => user.active === true);
+}
+
+export function generateRandomPairing(): { user1: User; user2: User } {
+  const activeUsers = getActiveUsers();
+
+  if (activeUsers.length < 2) {
+    throw new Error('Not enough active users to create a pairing');
+  }
+
+  const index1 = Math.floor(Math.random() * activeUsers.length);
+  const user1 = activeUsers[index1]!;
+
+  let index2 = Math.floor(Math.random() * activeUsers.length);
+  while (index2 === index1) {
+    index2 = Math.floor(Math.random() * activeUsers.length);
+  }
+  const user2 = activeUsers[index2]!;
+
+  return { user1, user2 };
+}
