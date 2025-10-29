@@ -1,9 +1,15 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { generateRandomPairing } from './users';
+import { generateRandomPairing, getAllUsers } from './users';
 
+/**
+ * Calculates which users need reminders based on their pairing completion history.
+ * A user needs a reminder if they have 5 or more incomplete pairings in their
+ * most recent 5 pairing selections.
+ *
+ * @returns Array of GitHub usernames that need reminders
+ */
 async function calculateReminderUsers(): Promise<string[]> {
-  const { getAllUsers } = await import('./users');
   const users = await getAllUsers();
   const history = await getPairingHistory();
 
