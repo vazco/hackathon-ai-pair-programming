@@ -44,7 +44,7 @@ async function calculateReminderUsers(): Promise<string[]> {
 export async function generateAndSavePairing() {
   const { user1, user2 } = await generateRandomPairing();
 
-  await prisma.history.create({
+  const created = await prisma.history.create({
     data: {
       firstWinnerName: user1.name,
       firstWinnerGithub: user1.github,
@@ -57,7 +57,7 @@ export async function generateAndSavePairing() {
 
   const reminderUsers = await calculateReminderUsers();
 
-  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
+  return { user1, user2, timestamp: created.createdAt.toISOString(), reminderUsers };
 }
 
 export async function getPairingHistory() {
@@ -93,7 +93,7 @@ export async function regenerateLatestPairing() {
     user2 = newPair.user2;
   }
 
-  await prisma.history.update({
+  const updated = await prisma.history.update({
     where: { id: latest.id },
     data: {
       firstWinnerName: user1.name,
@@ -107,7 +107,7 @@ export async function regenerateLatestPairing() {
 
   const reminderUsers = await calculateReminderUsers();
 
-  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
+  return { user1, user2, timestamp: updated.createdAt.toISOString(), reminderUsers };
 }
 
 export async function markPairingCompleted(id: number) {
