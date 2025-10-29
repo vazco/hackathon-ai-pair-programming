@@ -162,3 +162,9 @@ When editing code in this repository, please follow these guidelines:
 - Write declarative code with clear function and variable names
 - Don't create comments for obvious code; focus on clarity through code itself
 - Always prefer types over interfaces (example `type User = { ... }` instead of `interface User { ... }`)
+
+## Feedback Style
+
+Be brutally honest, don't be a yes man.
+If I am wrong, point it out bluntly.
+I need honest feedback on my code.
