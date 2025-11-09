@@ -1,22 +1,15 @@
 import { prisma } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { generateRandomPairing } from './users';
+import { generateRandomPairing, getAllUsers } from './users';
 
-export async function generateAndSavePairing() {
-  const { user1, user2 } = await generateRandomPairing();
-
-  await prisma.history.create({
-    data: {
-      firstWinnerName: user1.name,
-      firstWinnerGithub: user1.github,
-      secondWinnerName: user2.name,
-      secondWinnerGithub: user2.github,
-    },
-  });
-
-  logger.info('Pairing saved to history');
-
-  const { getAllUsers } = await import('./users');
+/**
+ * Calculates which users need reminders based on their pairing completion history.
+ * A user needs a reminder if they have 5 or more incomplete pairings in their
+ * most recent 5 pairing selections.
+ *
+ * @returns Array of GitHub usernames that need reminders
+ */
+async function calculateReminderUsers(): Promise<string[]> {
   const users = await getAllUsers();
   const history = await getPairingHistory();
 
@@ -45,7 +38,26 @@ export async function generateAndSavePairing() {
     }
   }
 
-  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
+  return reminderUsers;
+}
+
+export async function generateAndSavePairing() {
+  const { user1, user2 } = await generateRandomPairing();
+
+  const created = await prisma.history.create({
+    data: {
+      firstWinnerName: user1.name,
+      firstWinnerGithub: user1.github,
+      secondWinnerName: user2.name,
+      secondWinnerGithub: user2.github,
+    },
+  });
+
+  logger.info('Pairing saved to history');
+
+  const reminderUsers = await calculateReminderUsers();
+
+  return { user1, user2, timestamp: created.createdAt.toISOString(), reminderUsers };
 }
 
 export async function getPairingHistory() {
@@ -81,7 +93,7 @@ export async function regenerateLatestPairing() {
     user2 = newPair.user2;
   }
 
-  await prisma.history.update({
+  const updated = await prisma.history.update({
     where: { id: latest.id },
     data: {
       firstWinnerName: user1.name,
@@ -93,37 +105,9 @@ export async function regenerateLatestPairing() {
 
   logger.info('Latest pairing regenerated');
 
-  // Calculate reminder users
-  const { getAllUsers } = await import('./users');
-  const users = await getAllUsers();
-  const history = await getPairingHistory();
+  const reminderUsers = await calculateReminderUsers();
 
-  const reminderUsers: string[] = [];
-
-  for (const user of users) {
-    if (!user.github) continue;
-
-    const userSelections = history
-      .filter(
-        (h) =>
-          h.firstWinnerGithub === user.github ||
-          h.secondWinnerGithub === user.github
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      .slice(0, 5);
-
-    if (
-      userSelections.length >= 5 &&
-      userSelections.every((h) => !h.completed)
-    ) {
-      reminderUsers.push(user.github);
-    }
-  }
-
-  return { user1, user2, timestamp: new Date().toISOString(), reminderUsers };
+  return { user1, user2, timestamp: updated.createdAt.toISOString(), reminderUsers };
 }
 
 export async function markPairingCompleted(id: number) {
@@ -134,35 +118,7 @@ export async function markPairingCompleted(id: number) {
     });
     logger.info(`Pairing ${id} marked as completed`);
 
-    // Calculate reminder users
-    const { getAllUsers } = await import('./users');
-    const users = await getAllUsers();
-    const history = await getPairingHistory();
-
-    const reminderUsers: string[] = [];
-
-    for (const user of users) {
-      if (!user.github) continue;
-
-      const userSelections = history
-        .filter(
-          (h) =>
-            h.firstWinnerGithub === user.github ||
-            h.secondWinnerGithub === user.github
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        .slice(0, 5);
-
-      if (
-        userSelections.length >= 5 &&
-        userSelections.every((h) => !h.completed)
-      ) {
-        reminderUsers.push(user.github);
-      }
-    }
+    const reminderUsers = await calculateReminderUsers();
 
     return { history: updated, reminderUsers };
   } catch (error) {
@@ -179,35 +135,7 @@ export async function undoPairingCompleted(id: number) {
     });
     logger.info(`Pairing ${id} marked as not completed`);
 
-    // Calculate reminder users
-    const { getAllUsers } = await import('./users');
-    const users = await getAllUsers();
-    const history = await getPairingHistory();
-
-    const reminderUsers: string[] = [];
-
-    for (const user of users) {
-      if (!user.github) continue;
-
-      const userSelections = history
-        .filter(
-          (h) =>
-            h.firstWinnerGithub === user.github ||
-            h.secondWinnerGithub === user.github
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        )
-        .slice(0, 5);
-
-      if (
-        userSelections.length >= 5 &&
-        userSelections.every((h) => !h.completed)
-      ) {
-        reminderUsers.push(user.github);
-      }
-    }
+    const reminderUsers = await calculateReminderUsers();
 
     return { history: updated, reminderUsers };
   } catch (error) {
