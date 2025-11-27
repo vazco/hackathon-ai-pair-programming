@@ -1,38 +1,23 @@
-import type { User } from '@/lib/api-client';
+import type { User } from '@/lib/users';
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/lib/api-client';
-import { AlertTriangle } from 'lucide-react';
 
 type PairingResultProps = {
   user1: User | null;
   user2: User | null;
   isAnimating: boolean;
-  reminderUsers: Set<string>;
+  allUsers: User[];
 };
 
 export function PairingResult({
   user1,
   user2,
   isAnimating,
-  reminderUsers,
+  allUsers,
 }: PairingResultProps) {
   const { t } = useTranslation();
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-
-  useEffect(() => {
-    async function fetchUsers() {
-      try {
-        const users = await apiClient.getUsers();
-        setAllUsers(users);
-      } catch (error) {
-        console.error('Failed to fetch users:', error);
-      }
-    }
-    fetchUsers();
-  }, []);
 
   if (!isAnimating && !user1 && !user2) {
     return (
@@ -48,13 +33,11 @@ export function PairingResult({
         user={user1}
         isAnimating={isAnimating}
         allUsers={allUsers}
-        reminderUsers={reminderUsers}
       />
       <SlotMachineCard
         user={user2}
         isAnimating={isAnimating}
         allUsers={allUsers}
-        reminderUsers={reminderUsers}
       />
     </div>
   );
@@ -64,14 +47,12 @@ type SlotMachineCardProps = {
   user: User | null;
   isAnimating: boolean;
   allUsers: User[];
-  reminderUsers: Set<string>;
 };
 
 function SlotMachineCard({
   user,
   isAnimating,
   allUsers,
-  reminderUsers,
 }: SlotMachineCardProps) {
   const [displayUser, setDisplayUser] = useState<User | null>(user);
 
@@ -116,7 +97,6 @@ function SlotMachineCard({
         repeatType: 'reverse',
       }}
     >
-      {/* Slot machine rolling overlay */}
       {isAnimating && (
         <motion.div
           className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/10 to-transparent pointer-events-none z-10"
@@ -182,14 +162,11 @@ function SlotMachineCard({
 
             <h3
               className={cn(
-                'text-2xl font-bold text-foreground mb-2 flex items-center gap-2',
+                'text-2xl font-bold text-foreground mb-2',
                 isAnimating && 'blur-sm'
               )}
             >
               {displayUser.name}
-              {displayUser.github && reminderUsers.has(displayUser.github) && (
-                <AlertTriangle className="w-5 h-5 text-yellow-500" />
-              )}
             </h3>
             {displayUser.github && (
               <a
@@ -208,7 +185,6 @@ function SlotMachineCard({
         )}
       </div>
 
-      {/* Final reveal animation */}
       {!isAnimating && (
         <motion.div
           className="absolute inset-0 bg-primary/20 pointer-events-none"

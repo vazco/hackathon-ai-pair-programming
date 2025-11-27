@@ -9,6 +9,8 @@ const resources = {
       gambleButton: 'Losuj!',
       generating: 'Losowanie...',
       clickToGenerate: 'Kliknij przycisk Losuj, aby wybrać losową parę',
+      noUsersProvided:
+        'Brak użytkowników. Dodaj parametr ?users= z zakodowaną listą użytkowników.',
       pairingHistory: 'Historia Parowań',
       completed: 'Ukończone',
       regamble: 'Losuj ponownie',
