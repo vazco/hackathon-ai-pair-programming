@@ -1,12 +1,12 @@
 import { useCallback, useRef } from 'react';
 
-interface RandomizingSoundNodes {
+type RandomizingSoundNodes = {
   oscillator1: OscillatorNode;
   oscillator2: OscillatorNode;
   lfoOscillator: OscillatorNode;
   gainNode: GainNode;
   lfoGain: GainNode;
-}
+};
 
 export function useSoundEffects() {
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -88,7 +88,9 @@ export function useSoundEffects() {
         oscillator1.stop(now + 0.1);
         oscillator2.stop(now + 0.1);
         lfoOscillator.stop(now + 0.1);
-      } catch (error) {}
+      } catch {
+        // Ignore errors when stopping audio nodes
+      }
 
       randomizingSoundNodesRef.current = null;
     }

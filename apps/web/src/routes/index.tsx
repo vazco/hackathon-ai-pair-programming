@@ -1,12 +1,13 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PairingResult } from '@/components/PairingResult';
 import { WinnersHistory } from '@/components/WinnersHistory';
-import { apiClient, type History } from '@/lib/api-client';
-import { Pairing } from '@/types/user';
+import { apiClient, type History, type Pairing } from '@/lib/api-client';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
 
 function Index() {
+  const { t } = useTranslation();
   const [currentPairing, setCurrentPairing] = useState<Pairing | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [history, setHistory] = useState<History[]>([]);
@@ -108,11 +109,7 @@ function Index() {
       setReminderUsers(new Set(pairingData.reminderUsers));
     } catch (error) {
       console.error('Failed to generate pairing:', error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : 'Failed to generate pairing. Please try again.'
-      );
+      alert(error instanceof Error ? error.message : t('failedToGenerate'));
       setIsAnimating(false);
     } finally {
       setIsLoading(false);
@@ -141,7 +138,7 @@ function Index() {
       }
     } catch (error) {
       console.error('Failed to regamble:', error);
-      alert('Failed to regamble. Please try again.');
+      alert(t('failedToRegamble'));
       setIsAnimating(false);
     }
   };
@@ -155,7 +152,7 @@ function Index() {
       setRecentlyCompleted((prev) => [...prev, { id, timestamp: Date.now() }]);
     } catch (error) {
       console.error('Failed to mark as completed:', error);
-      alert('Failed to mark as completed. Please try again.');
+      alert(t('failedToMarkCompleted'));
     }
   };
 
@@ -168,7 +165,7 @@ function Index() {
       setRecentlyCompleted((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       console.error('Failed to undo completion:', error);
-      alert('Failed to undo completion. Please try again.');
+      alert(t('failedToUndoCompletion'));
     }
   };
 
@@ -177,11 +174,9 @@ function Index() {
       <div className="max-w-4xl mx-auto w-full">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-foreground mb-4">
-            Pair Programming Lottery
+            {t('title')}
           </h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Generate random pairings for pair programming sessions
-          </p>
+          <p className="text-xl text-muted-foreground mb-8">{t('subtitle')}</p>
         </div>
 
         <div className="text-center mb-8">
@@ -190,7 +185,7 @@ function Index() {
             disabled={isLoading || isAnimating}
             className="px-8 py-4 bg-primary text-primary-foreground rounded-lg font-semibold text-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading || isAnimating ? 'Generating...' : 'Run the Gamble!'}
+            {isLoading || isAnimating ? t('generating') : t('gambleButton')}
           </button>
         </div>
 

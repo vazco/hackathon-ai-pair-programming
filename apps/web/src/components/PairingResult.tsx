@@ -1,16 +1,17 @@
-import { User } from '@/types/user';
+import type { User } from '@/lib/api-client';
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { apiClient } from '@/lib/api-client';
 import { AlertTriangle } from 'lucide-react';
 
-interface PairingResultProps {
+type PairingResultProps = {
   user1: User | null;
   user2: User | null;
   isAnimating: boolean;
   reminderUsers: Set<string>;
-}
+};
 
 export function PairingResult({
   user1,
@@ -18,6 +19,7 @@ export function PairingResult({
   isAnimating,
   reminderUsers,
 }: PairingResultProps) {
+  const { t } = useTranslation();
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
   useEffect(() => {
@@ -35,9 +37,7 @@ export function PairingResult({
   if (!isAnimating && !user1 && !user2) {
     return (
       <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg">
-          Click the Gamble button to select a random pair
-        </p>
+        <p className="text-lg">{t('clickToGenerate')}</p>
       </div>
     );
   }
@@ -60,12 +60,12 @@ export function PairingResult({
   );
 }
 
-interface SlotMachineCardProps {
+type SlotMachineCardProps = {
   user: User | null;
   isAnimating: boolean;
   allUsers: User[];
   reminderUsers: Set<string>;
-}
+};
 
 function SlotMachineCard({
   user,

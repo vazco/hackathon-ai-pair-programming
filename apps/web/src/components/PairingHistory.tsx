@@ -1,10 +1,13 @@
-import { Pairing } from '@/types/user';
+import { useTranslation } from 'react-i18next';
+import type { Pairing, User } from '@/lib/api-client';
 
-interface PairingHistoryProps {
+type PairingHistoryProps = {
   pairings: Pairing[];
-}
+};
 
 export function PairingHistory({ pairings }: PairingHistoryProps) {
+  const { t } = useTranslation();
+
   if (pairings.length === 0) {
     return null;
   }
@@ -12,7 +15,7 @@ export function PairingHistory({ pairings }: PairingHistoryProps) {
   return (
     <div className="mt-12">
       <h2 className="text-2xl font-bold text-foreground mb-6">
-        Pairing History
+        {t('pairingHistory')}
       </h2>
       <div className="space-y-4">
         {pairings.map((pairing, index) => (
@@ -23,13 +26,20 @@ export function PairingHistory({ pairings }: PairingHistoryProps) {
             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-sm">
               {pairings.length - index}
             </div>
-            <div className="flex-1 flex items-center gap-4">
+            <div className="flex-1 grid grid-cols-3 items-center gap-4">
               <UserInfo user={pairing.user1} />
-              <div className="text-muted-foreground font-bold">+</div>
               <UserInfo user={pairing.user2} />
+              <div className="flex gap-2">
+                <button className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded hover:bg-primary/90">
+                  {t('mark')}
+                </button>
+                <button className="px-3 py-1 text-sm border border-border rounded hover:bg-muted">
+                  {t('manage')}
+                </button>
+              </div>
             </div>
             <div className="text-sm text-muted-foreground">
-              {formatTimestamp(pairing.timestamp)}
+              {formatTimestamp(pairing.timestamp, t)}
             </div>
           </div>
         ))}
@@ -38,9 +48,9 @@ export function PairingHistory({ pairings }: PairingHistoryProps) {
   );
 }
 
-interface UserInfoProps {
-  user: { name: string; github: string };
-}
+type UserInfoProps = {
+  user: User;
+};
 
 function UserInfo({ user }: UserInfoProps) {
   return (
@@ -73,7 +83,10 @@ function UserInfo({ user }: UserInfoProps) {
   );
 }
 
-function formatTimestamp(timestamp: string): string {
+function formatTimestamp(
+  timestamp: string,
+  t: (key: string, options?: { count: number }) => string
+): string {
   const date = new Date(timestamp);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -81,12 +94,12 @@ function formatTimestamp(timestamp: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Just now';
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffMins < 1) return t('justNow');
+  if (diffMins < 60) return t('minutesAgo', { count: diffMins });
+  if (diffHours < 24) return t('hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('daysAgo', { count: diffDays });
 
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('pl-PL', {
     month: 'short',
     day: 'numeric',
     year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,

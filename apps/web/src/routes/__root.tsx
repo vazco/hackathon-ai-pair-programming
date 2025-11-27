@@ -1,10 +1,12 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { useTranslation } from 'react-i18next';
 import { ThemeProvider, useTheme } from '@/hooks/useTheme';
 import { Moon, Sun } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 function ThemeToggle() {
+  const { t } = useTranslation();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -12,7 +14,7 @@ function ThemeToggle() {
       variant="ghost"
       onClick={toggleTheme}
       className="fixed top-4 right-4 p-2"
-      aria-label="Toggle theme"
+      aria-label={t('toggleTheme')}
       size={'icon'}
     >
       {theme === 'dark' ? <Sun /> : <Moon />}
