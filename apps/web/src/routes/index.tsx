@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PairingResult } from '@/components/PairingResult';
 import { useSoundEffects } from '@/hooks/useSoundEffects';
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/')({
 function Index() {
   const { t } = useTranslation();
   const { users: usersParam } = Route.useSearch();
-  const users = useMemo(() => parseUsersFromBase64(usersParam), [usersParam]);
+  const users = parseUsersFromBase64(usersParam);
   const [currentPairing, setCurrentPairing] = useState<Pairing | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const { playRandomizingSound, stopRandomizingSound, playWinnerSound } =

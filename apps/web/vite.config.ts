@@ -15,7 +15,11 @@ export default defineConfig({
       enableRouteGeneration: true,
       autoCodeSplitting: true,
     }),
-    react(),
+    react({
+      babel: {
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    }),
     tailwindcss(),
   ],
   resolve: {

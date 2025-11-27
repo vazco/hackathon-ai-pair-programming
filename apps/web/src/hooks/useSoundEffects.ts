@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useRef } from 'react';
 
 type RandomizingSoundNodes = {
   oscillator1: OscillatorNode;
@@ -12,14 +12,14 @@ export function useSoundEffects() {
   const audioContextRef = useRef<AudioContext | null>(null);
   const randomizingSoundNodesRef = useRef<RandomizingSoundNodes | null>(null);
 
-  const getAudioContext = useCallback(() => {
+  const getAudioContext = () => {
     if (!audioContextRef.current) {
       audioContextRef.current = new AudioContext();
     }
     return audioContextRef.current;
-  }, []);
+  };
 
-  const playRandomizingSound = useCallback(() => {
+  const playRandomizingSound = () => {
     const audioContext = getAudioContext();
     const now = audioContext.currentTime;
 
@@ -70,9 +70,9 @@ export function useSoundEffects() {
       gainNode,
       lfoGain,
     };
-  }, [getAudioContext]);
+  };
 
-  const stopRandomizingSound = useCallback(() => {
+  const stopRandomizingSound = () => {
     if (randomizingSoundNodesRef.current) {
       const audioContext = getAudioContext();
       const now = audioContext.currentTime;
@@ -94,9 +94,9 @@ export function useSoundEffects() {
 
       randomizingSoundNodesRef.current = null;
     }
-  }, [getAudioContext]);
+  };
 
-  const playWinnerSound = useCallback(() => {
+  const playWinnerSound = () => {
     const audioContext = getAudioContext();
     const now = audioContext.currentTime;
 
@@ -145,7 +145,7 @@ export function useSoundEffects() {
 
     bassOscillator.start(bassStart);
     bassOscillator.stop(bassEnd);
-  }, [getAudioContext]);
+  };
 
   return {
     playRandomizingSound,
