@@ -8,6 +8,7 @@ import './index.css';
 const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  basepath: '/hackathon-ai-pair-programming',
 });
 
 declare module '@tanstack/react-router' {
